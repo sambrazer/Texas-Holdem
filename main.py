@@ -1,3 +1,5 @@
+from enum import Enum
+
 import numpy as np
 import pandas as pd
 import datetime
@@ -924,10 +926,3 @@ if __name__ == "__main__":
 
     os.system('cls')
     aesthetics.game_end(original_players, wallet_dict, participate_dict, turn)
-
-
-
-
-
-
-
