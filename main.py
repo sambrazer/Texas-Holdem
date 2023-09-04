@@ -11,7 +11,7 @@ class game_param:
     big_blind = 10000
     little_blind = 5000
 
-    names = pd.read_excel(pathlib.Path("./names.csv"))['Name'].to_list()
+    names = pd.read_csv(pathlib.Path("./names.csv"))['name'].to_list()
 
     def get_players():
         num_players = input('How many bots (max 9): ')
