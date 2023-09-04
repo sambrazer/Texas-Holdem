@@ -1,6 +1,5 @@
-
-
 import typing as t
+from enum import Enum
 
 
 class PokerBaseError(Exception):
