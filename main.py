@@ -4,13 +4,14 @@ import datetime
 from datetime import date
 import random
 import os
+import pathlib
 
 class game_param:
     initial_money = 100000
     big_blind = 10000
     little_blind = 5000
 
-    names = pd.read_excel(r'C:\Users\sambr\Desktop\PY4E\Practice\Poker\names.xlsx')['Name'].to_list()
+    names = pd.read_excel(pathlib.Path("./names.csv"))['Name'].to_list()
 
     def get_players():
         num_players = input('How many bots (max 9): ')
@@ -21,7 +22,7 @@ class game_param:
             print('Invalid choice. Try again.')
             return(False)
         return(int(num_players))
-    
+
     def player_names(num_players):
         players = []
         for i in range(num_players - 1):
@@ -67,7 +68,7 @@ class game_param:
         previous_dealer = dealer
         previous_players = players
         return((dealer, bb, lb, previous_dealer, previous_players))
-    
+
     def player_wallets_initial(players, initial_money):
         wallet_dict = {}
         for player in players:
@@ -87,14 +88,14 @@ class game_mech:
                 del bots
             else: bool = True
         return(bots)
-    
+
     def initialize_deck():
         deck = []
         for suit in ['S', 'C', 'D', 'H']:
             for key, value in hands.cards_dict.items():
                 deck.append(key + suit)
         return(deck)
-    
+
     def shuffle_deck():
         deck = game_mech.initialize_deck()
         num_shuffles = random.randint(3, 7)
@@ -109,7 +110,7 @@ class game_mech:
             if participate_dict.get(player) == False: continue
             player_dict[player] = [shuffled_deck[players.index(player)], shuffled_deck[players.index(player) + len(players)]]
         return((player_dict, shuffled_deck[len(players)*2: ]))
-        
+
     def deal_flop(shuffled_deck):
         table_cards_dict = {}
         table_cards_dict['Burn'] = shuffled_deck[:6:2]
@@ -129,14 +130,14 @@ class game_mech:
     def wallet_update(player, wallet_dict, bet):
         wallet_dict[player] = wallet_dict.get(player) - bet
         return(wallet_dict)
-    
+
     def define_turn_order(players, dealer, lb, bb):
         if players.index(bb) == len(players) - 1:
             players_ordered = players
-        else:    
+        else:
             players_ordered = players[(players.index(bb)+1) % len(players):] + players[:players.index(bb) + 1]
         return(players_ordered)
-    
+
     def blind_bet(players, wallet_dict, lb, bb):
         '''Need else codes for big and little blinds to put them all in if they cant match the blind'''
         bet_dict = {}
@@ -146,14 +147,14 @@ class game_mech:
                     bet_dict[player] = game_param.big_blind
                     wallet_dict[player] = wallet_dict.get(player) - game_param.big_blind
             elif player == lb:
-                if wallet_dict.get(player) >= game_param.little_blind: 
+                if wallet_dict.get(player) >= game_param.little_blind:
                     bet_dict[player] = game_param.little_blind
                     wallet_dict[player] = wallet_dict.get(player) - game_param.little_blind
             else:
                 bet_dict[player] = 0
         blind_pot_value = sum(list(bet_dict.values()))
         return((wallet_dict, bet_dict, blind_pot_value))
-    
+
     def get_bet_user(player, wallet_dict, bet_dict, participate_dict):
         if participate_dict.get(player) == False:
             move = 'fold'
@@ -192,7 +193,7 @@ class game_mech:
                             bet_dict[player] = bet_dict.get(player) + int(bet)
                             wallet_dict = game_mech.wallet_update(player, wallet_dict, int(bet))
                     bool_choice = True
-                
+
                 elif choice.lower() == 'fold':
                     move = 'fold'
                     participate_dict[player] = False
@@ -200,15 +201,15 @@ class game_mech:
 
                 else:
                     move = 'knock'
-                    bool_choice = True    
-                      
+                    bool_choice = True
+
             '''else:
                 print('Choice:', choice)
                 print('Bet:', bet_dict.get(player))
-                print('Wallet:', wallet_dict.get(player))    '''      
+                print('Wallet:', wallet_dict.get(player))    '''
 
             return((wallet_dict, bet_dict, participate_dict, move))
-    
+
     def get_bet_bots(player, wallet_dict, bet_dict, participate_dict):
         if max(list(bet_dict.values())) == 0:
             move = 'knock'
@@ -256,15 +257,15 @@ class game_mech:
             pot_value, side_pots, side_pot_participants_list = game_mech.side_pot(players, participate_dict, wallet_dict, bet_dict, pot_value, side_pots)
         else:
             pot_value = pot_value + sum(list(bet_dict.values()))
-        return((wallet_dict, bet_dict, participate_dict, pot_value, side_pots, side_pot_participants_list))                   
-                    
+        return((wallet_dict, bet_dict, participate_dict, pot_value, side_pots, side_pot_participants_list))
+
     def determine_winner(rank, best_hands, players, participate_dict, table_cards_dict):
         best_playing_rank = max([value for idx, value in enumerate(rank) if participate_dict.get(players[idx]) == True])
         initial_best_rank_index = [idx for idx, value in enumerate(rank) if value == best_playing_rank and participate_dict.get(players[idx]) == True]
         best_rank_index = [value for idx, value in enumerate(initial_best_rank_index) if participate_dict.get(players[value]) == True]
         hands_to_compare = [best_hands[i] for i in best_rank_index if list(participate_dict.values())[i] == True]
         winning_hands = []
-        winning_players = []        
+        winning_players = []
         if len(best_rank_index) > 1:
             if max(rank) not in [2, 3, 4, 7, 8]:
                 evaluate_duplicates_number = []
@@ -273,7 +274,7 @@ class game_mech:
                     for card in hand:
                         print(card[:-1])
                         evaluate_duplicates_number.append(hands.cards_dict.get(card[:-1]))
-                try:        
+                try:
                     high_card_number = [key for key, value in hands.cards_dict.items() if value == max(evaluate_duplicates_number)][0]
                 except:
                     print('High Card interpretation ranking busted')
@@ -315,7 +316,7 @@ class game_mech:
                             low_single_index = [idx for idx, value in enumerate(med_single) if value == max(med_single_tied) and idx in med_single_index]
                             low_single_tied = [low_single[i] for i in low_single_index]
                             if len(low_single_tied) == len(set(low_single_tied)):
-                                winning_hands = [hands_to_compare[low_single_index[low_single_tied.index(max(low_single_tied))]]  ]              
+                                winning_hands = [hands_to_compare[low_single_index[low_single_tied.index(max(low_single_tied))]]  ]
                                 winning_players = [players[best_rank_index[low_single_index[low_single_tied.index(max(low_single_tied))]]]]
                             else:
                                 winning_index = [idx for idx, value in enumerate(low_single) if value == max(low_single_tied) and idx in low_single_index]
@@ -348,7 +349,7 @@ class game_mech:
                                 winning_index = [idx for idx, value in enumerate(high_single) if value == max(high_single_tied) and idx in high_single_tied_index]
                                 winning_hands = [hands_to_compare[i] for i in winning_index]
                                 winning_players = [players[best_rank_index[i]] for i in winning_index]
-            
+
             elif max(rank) == 4:
                 high_triple = []
                 high_single = []
@@ -370,13 +371,13 @@ class game_mech:
                             low_single_tied_index = [idx for idx, value in enumerate(high_single) if value == max(high_single_tied) and idx in high_single_tied_index]
                             low_single_tied = [low_single[i] for i in low_single_tied_index]
                             if len(low_single_tied) == len(set(low_single_tied)):
-                                winning_hands = [hands_to_compare[low_single_tied_index[low_single_tied.index(max(low_single_tied))]]]                
+                                winning_hands = [hands_to_compare[low_single_tied_index[low_single_tied.index(max(low_single_tied))]]]
                                 winning_players = [players[best_rank_index[low_single_tied_index[low_single_tied.index(max(low_single_tied))]]]]
                             else:
                                 winning_index = [idx for idx, value in enumerate(low_single) if value == max(low_single_tied) and idx in low_single_tied_index]
                                 winning_hands = [hands_to_compare[i] for i in winning_index]
                                 winning_players = [players[best_rank_index[i]] for i in winning_index]
-            
+
             elif max(rank) in [7, 8]:
                 high_card = [hands.cards_dict.get(hand[0][:-1]) for hand in hands_to_compare]
                 low_card = [hands.cards_dict.get(hand[4][:-1]) for hand in hands_to_compare]
@@ -432,7 +433,7 @@ class game_mech:
                     side_pot_participants_list.append(side_pot_participants)
                     side_pots.append((unique_bets[i] - unique_bets[i-1])*len(side_pot_participants))
             return((pot_value, side_pots, side_pot_participants_list))
-    
+
     def side_pot_payout(players, player_hands, table_cards, side_pot, side_pot_participants, participate_dict):
         rank, best_hands = hands.evaluate_hands(side_pot_participants, player_hands, table_cards)
         winning_hands, winning_players = game_mech.determine_winner(rank, best_hands, side_pot_participants, participate_dict, table_cards)
@@ -479,7 +480,7 @@ class game_mech:
                 side_pots = []
                 aesthetics.display_winner(winning_hands, winning_players)
                 return((wallet_dict, pot_value, side_pots))
-            
+
     def check_game_end(players, wallet_dict, participate_dict, game_cont):
         for player in players:
             if wallet_dict.get(player) == 0:
@@ -505,7 +506,7 @@ class hands:
                             'Three of a Kind': ('1a', '1b', '1c', '2*', '3*'), 'Straight': ('1*', '2*', '3*', '4*', '5*'),
                             'Flush': ('1a', '2a', '3a', '4a', '5a'), 'Full House': ('1a', '1b', '1c', '2a', '2b'),
                             'Four of a Kind': ('1a', '1b', '1c', '1d', '2*')}
-    
+
     cards_dict = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14}
 
     card_suit_ph = ['a', 'b', 'c', 'd']
@@ -518,7 +519,7 @@ class hands:
         for card in hand:
             numbers.append(hands.cards_dict.get(card[:-1]))
         return sorted(numbers) == list(range(min(numbers), max(numbers) + 1))
-    
+
     def check_royal_flush(hand):
         numbers = []
         for card in hand:
@@ -526,11 +527,11 @@ class hands:
         if sorted(numbers)[0] == 10 and sorted(numbers)[0] == 14:
             return(True)
         else:
-            return(False) 
-    
+            return(False)
+
     def convert_hand(hand):
         placeholder = False
-        card_nums = []  
+        card_nums = []
         suits = []
         converted_hand = []
         converted_hands = []
@@ -578,7 +579,7 @@ class hands:
                     placeholder = True
                     converted_hand = []
                     spliced_hand = []
-                    break 
+                    break
 
         if (sorted_card_nums[0] - sorted_card_nums[-3]) == 4 or (sorted_card_nums[1] - sorted_card_nums[-2]) == 4 or (sorted_card_nums[2] - sorted_card_nums[-1]) == 4:
             if tuple(range(sorted_card_nums[0], sorted_card_nums[-3] - 1, -1)) == sorted_card_nums[:-2]:
@@ -615,7 +616,7 @@ class hands:
                 return('High Card')
             elif value == converted_hand:
                 if key == 'Flush':
-                    if hands.check_straight_flush(spliced_hand) == True: 
+                    if hands.check_straight_flush(spliced_hand) == True:
                         if hands.check_royal_flush(spliced_hand) == True: return('Royal Flush')
                         else: return('Straight Flush')
                     else:
@@ -627,9 +628,9 @@ class hands:
         for converted_hand, hand, spliced_hand in converted_hands:
             if type(hands.best_hands_dict.get(hands.get_hand(converted_hand, spliced_hand))) != int:
                 hand_rank.append(0)
-            else:                                          
+            else:
                 hand_rank.append(hands.best_hands_dict.get(hands.get_hand(converted_hand, spliced_hand)))
-        return((converted_hands[hand_rank.index(max(hand_rank))][2], 
+        return((converted_hands[hand_rank.index(max(hand_rank))][2],
             hands.get_hand(converted_hands[hand_rank.index(max(hand_rank))][0], converted_hands[hand_rank.index(max(hand_rank))][2])))
 
     def evaluate_hands(players, player_hands, table_cards_dict):
@@ -673,7 +674,7 @@ class aesthetics:
                 print('Side Pot', str(side_pots.index(side_pot) +1), 'Value:', side_pot)
         else:
             print('\nPot Value:', pot_value)
-    
+
     '''fix display aesthetics for any hands having a 10'''
     def display_hand_initial(players, player_hands):
         'Your hand: is 11 spaces'
@@ -691,7 +692,7 @@ class aesthetics:
               '| |', table_cards_dict.get('Flop')[1],'| |', table_cards_dict.get('Flop')[2],
                 '| |', table_cards_dict.get('Turn')[0], '|\n  ----      ----   ----   ----   ----')
         _ = input('')
-    
+
     def display_hand_river(table_cards_dict):
         print('\n\n  ----      ----   ----   ----   ----   ----\n |    |    |', table_cards_dict.get('Flop')[0],
               '| |', table_cards_dict.get('Flop')[1],'| |', table_cards_dict.get('Flop')[2],
@@ -711,7 +712,7 @@ class aesthetics:
             for player in winning_players:
                 print(player)
             _ = input('')
-    
+
     def game_end(players, wallet_dict, participate_dict, turn):
         if participate_dict.get(players[-1]) == True:
             print('You win!')
@@ -721,7 +722,7 @@ class aesthetics:
             print('You lose.')
             print('Winning Player:', winning_player)
             print('Turns played:', turn)
-    
+
 class probabilities:
 
     def initial_hand(turn, num_players, player, participate_dict, player_hand, table_cards, dealt_deck):
@@ -738,7 +739,7 @@ class probabilities:
         for card in hand:
             card_nums.append(hands.cards_dict.get(card[:-1]))
             suits.append(card[-1])
-        
+
         possible_turn = ['Initial', 'Flop', 'Turn', 'River']
         if participate_dict.get(player) == False:
             return()
@@ -750,7 +751,7 @@ class probabilities:
 
         'https://pi.math.cornell.edu/~mec/2006-2007/Probability/Texasholdem.pdf'
         return()
-    
+
     def single_card_prob_matrix(hand, turn, possible_turn):
         if turn == 'Initial':
             cards_left_to_deal = 5
@@ -766,7 +767,7 @@ class probabilities:
                 else:
                     prob_matrix.at[idx, card_num] = cards_left_to_deal / (52 - len(hand))
         return(prob_matrix)
-    
+
     def single_card_prob_matrix_for_flop(hand, flop_dealt):
         cards_left_to_deal = 5 - flop_dealt
         column_headers = [key for key, value in hands.cards_dict.items()]
@@ -815,9 +816,9 @@ class probabilities:
 
         card_nums_needed = [hands.cards_dict.get(card[:-1]) for card in cards_needed_in_best_hand]
         suit_needed = cards_needed_in_best_hand[0][-1]
-        
 
-        '''below code has issues. If the cards needed is less than the number of cards left to be dealt, my odds of getting the hand i 
+
+        '''below code has issues. If the cards needed is less than the number of cards left to be dealt, my odds of getting the hand i
         want greatly increases. I believe the below only accounts for the odds of getting the hand I want assuming the cards needed
         and the cards left to be dealt are equal'''
         if cards_left == len(card_nums_needed):
@@ -833,7 +834,7 @@ class probabilities:
                 probability_of_hand_list.append(single_card_prob_matrix.at[cards_needed_in_best_hand[-1][-1], cards_needed_in_best_hand[-1][:-1]])
                 probability = np.prod(probability_of_hand_list)*len(cards_needed_in_best_hand)
                 return(probability)
-            
+
             else:
                 probability_of_hand_list = []
                 for card in cards_needed_in_best_hand[:3]:
@@ -875,12 +876,12 @@ if __name__ == "__main__":
         players_ordered = game_mech.define_turn_order(players, dealer, lb, bb)
 
         wallet_dict, bet_dict, blind_pot_value = game_mech.blind_bet(players, wallet_dict, lb, bb)
-        
+
         side_pots = []
         side_pot_participants_list = []
         table_cards = {}
         aesthetics.display_players(players, dealer, bb, lb, wallet_dict, bet_dict, blind_pot_value, side_pots)
-        
+
         shuffled_deck = game_mech.shuffle_deck()
         player_hands, dealt_deck = game_mech.deal_cards_players(players, shuffled_deck, participate_dict)
         aesthetics.display_hand_initial(players, player_hands)
@@ -926,7 +927,7 @@ if __name__ == "__main__":
 
 
 
-    
-    
-    
-    
+
+
+
+
