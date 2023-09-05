@@ -1,4 +1,4 @@
-from texas_holdem.class_example import Card, Player, OutOfChipsError, TooManyCardsError, Hand
+from texas_holdem.class_example import Card, Player, OutOfChipsError, TooManyCardsError, Hand, Suit, Value
 import pytest
 
 
@@ -30,25 +30,57 @@ def test_player_win():
 
 def test_player_cards():
     player = Player("Test", 100)
-    player.new_cards([Card(2, "H"), Card(3, "H")])
-    player.new_cards([Card(4, "H"), Card(5, "H"), Card(6, "H")])
+    player.new_cards([Card(Suit.club, Value.two), Card(Suit.club, Value.three)])
+    player.new_cards([Card(Suit.club, Value.four), Card(Suit.club, Value.five), Card(Suit.club, Value.six)])
     with pytest.raises(TooManyCardsError):
-        player.new_cards([Card(7, "H")])
+        player.new_cards([Card(Suit.club, Value.seven)])
 
 
 HANDS = [
     {
         # Straight flush
-        "winning": Hand([Card(2, "H"), Card(3, "H"), Card(4, "H"), Card(5, "H"), Card(6, "H")]),
+        "winning": Hand(
+            [
+                Card(Suit.club, Value.two),
+                Card(Suit.club, Value.three),
+                Card(Suit.club, Value.four),
+                Card(Suit.club, Value.five),
+                Card(Suit.club, Value.six),
+            ]
+        ),
         # Flush
-        "loosing": Hand([Card(2, "H"), Card(3, "H"), Card(4, "H"), Card(5, "H"), Card(6, "D")]),
+        "loosing": Hand(
+            [
+                Card(Suit.club, Value.two),
+                Card(Suit.club, Value.three),
+                Card(Suit.club, Value.four),
+                Card(Suit.club, Value.five),
+                Card(Suit.club, Value.seven),
+            ]
+        ),
     },
     {
         # pair
-        "winning": Hand([Card(2, "H"), Card(2, "D"), Card(4, "H"), Card(5, "H"), Card(6, "H")]),
+        "winning": Hand(
+            [
+                Card(Suit.club, Value.two),
+                Card(Suit.diamond, Value.two),
+                Card(Suit.club, Value.four),
+                Card(Suit.club, Value.five),
+                Card(Suit.club, Value.six),
+            ]
+        ),
         # high card
-        "loosing": Hand([Card(2, "H"), Card(3, "D"), Card(4, "H"), Card(5, "H"), Card(7, "H")]),
-    }
+        "loosing": Hand(
+            [
+                Card(Suit.club, Value.two),
+                Card(Suit.club, Value.three),
+                Card(Suit.club, Value.four),
+                Card(Suit.club, Value.five),
+                Card(Suit.diamond, Value.seven),
+            ]
+        ),
+    },
 ]
 
 
