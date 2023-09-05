@@ -38,7 +38,7 @@ class Value(int, Enum):
 
 
 class Card:
-    def __int__(self, suit: Suit, value_):
+    def __init__(self, suit: Suit, value_):
         self._suit = suit
         self.value = value_
 
@@ -77,7 +77,7 @@ class Hand:
 
 
 class Player:
-    def __int__(self, name: str, chips: int):
+    def __init__(self, name: str, chips: int):
         self._name = name
         self._chips = chips
         self._hand = Hand([])

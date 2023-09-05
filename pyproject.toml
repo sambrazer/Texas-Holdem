@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "texas-holdem"
+name = "th"
 version = "0.1.0"
 description = ""
 authors = ["sambrazer <57078669+sambrazer@users.noreply.github.com>"]
