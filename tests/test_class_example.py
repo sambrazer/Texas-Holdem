@@ -1,4 +1,4 @@
-from texas_holdem.class_example import Card, Player, OutOfChipsError, TooManyCardsError
+from texas_holdem.class_example import Card, Player, OutOfChipsError, TooManyCardsError, Hand
 import pytest
 
 
@@ -34,3 +34,26 @@ def test_player_cards():
     player.new_cards([Card(4, "H"), Card(5, "H"), Card(6, "H")])
     with pytest.raises(TooManyCardsError):
         player.new_cards([Card(7, "H")])
+
+
+HANDS = [
+    {
+        # Straight flush
+        "winning": Hand([Card(2, "H"), Card(3, "H"), Card(4, "H"), Card(5, "H"), Card(6, "H")]),
+        # Flush
+        "loosing": Hand([Card(2, "H"), Card(3, "H"), Card(4, "H"), Card(5, "H"), Card(6, "D")]),
+    },
+    {
+        # pair
+        "winning": Hand([Card(2, "H"), Card(2, "D"), Card(4, "H"), Card(5, "H"), Card(6, "H")]),
+        # high card
+        "loosing": Hand([Card(2, "H"), Card(3, "D"), Card(4, "H"), Card(5, "H"), Card(7, "H")]),
+    }
+]
+
+
+@pytest.mark.parametrize("hand", HANDS)
+def test_hand(hand):
+    winning = hand["winning"]
+    loosing = hand["loosing"]
+    assert winning > loosing
